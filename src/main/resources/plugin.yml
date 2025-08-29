@@ -1,0 +1,4 @@
+name: DogeMinesFramework
+version: '1.0-SNAPSHOT'
+main: net.dogemines.framework.DogeMinesFramework
+api-version: '1.21'
