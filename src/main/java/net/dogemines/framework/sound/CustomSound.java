@@ -1,5 +1,6 @@
 package net.dogemines.framework.sound;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import net.dogemines.framework.DogeMinesFramework;
 
@@ -9,7 +10,7 @@ public record CustomSound(
         Float pitch,
         Integer weight,
         Boolean stream,
-        Integer attenuationDistance,
+        Integer attenuation_distance,
         Boolean preload,
         String type
 ) {
@@ -28,18 +29,8 @@ public record CustomSound(
     }
 
     public JsonObject generateSoundObject() {
-        JsonObject jsonObject = new JsonObject();
-
-        addIfExists(jsonObject, "name", filename);
-        addIfExists(jsonObject, "volume", volume);
-        addIfExists(jsonObject, "pitch", pitch);
-        addIfExists(jsonObject, "weight", weight);
-        addIfExists(jsonObject, "stream", stream);
-        addIfExists(jsonObject, "attenuation_distance", attenuationDistance);
-        addIfExists(jsonObject, "preload", preload);
-        addIfExists(jsonObject, "type", type);
-
-        return jsonObject;
+        Gson gson = new Gson();
+        return gson.toJsonTree(this).getAsJsonObject();
     }
 
     public static class Builder {

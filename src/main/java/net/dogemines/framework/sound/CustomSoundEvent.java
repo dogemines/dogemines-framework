@@ -1,12 +1,11 @@
 package net.dogemines.framework.sound;
 
 import net.dogemines.framework.DogeMinesFramework;
-import net.dogemines.framework.data.registry.Registrable;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 
-public class CustomSoundEvent implements Registrable {
+public class CustomSoundEvent {
     private final boolean replace;
     private final String subtitle;
     private final String id;
@@ -46,7 +45,6 @@ public class CustomSoundEvent implements Registrable {
         return soundList;
     }
 
-    @Override
     public String getId() {
         return id;
     }

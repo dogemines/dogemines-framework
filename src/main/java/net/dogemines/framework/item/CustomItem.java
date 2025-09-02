@@ -2,8 +2,10 @@ package net.dogemines.framework.item;
 
 import com.google.gson.JsonObject;
 import net.dogemines.framework.DogeMinesFramework;
-import net.dogemines.framework.data.registry.Registrable;
+import net.dogemines.framework.data.BasicModel;
+import net.dogemines.framework.data.ResourcePack;
 import net.dogemines.framework.data.registry.Registries;
+import net.dogemines.framework.data.registry.RegistryObject;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -15,21 +17,25 @@ import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class CustomItem implements Registrable {
+public class CustomItem {
     private static final NamespacedKey ID_KEY = new NamespacedKey(DogeMinesFramework.NAMESPACE, "item_id");
+
     private final Material material;
     private final Component name;
-    private final ItemSettings settings;
-    private final String itemId;
+    private final ItemMetaDecorator metaDecorator;
 
-    public CustomItem(Material material, Component name, String itemId, ItemSettings settings) {
+    public CustomItem(Material material, Component name, ItemMetaDecorator metaDecorator) {
         this.material = material;
         this.name = name;
-        this.settings = settings;
-        this.itemId = itemId;
+        this.metaDecorator = metaDecorator;
     }
-    public CustomItem(Material material, Component name, String itemId) {
-        this(material, name, itemId, ItemSettings.DEFAULT);
+    public CustomItem(Material material, Component name) {
+        this(material, name, ItemMetaDecorator.DEFAULT);
+    }
+
+    //methods
+    public void modifyItemMeta(ItemMeta itemMeta, String itemId) {
+        metaDecorator.modifyItemMeta(itemMeta, itemId, this);
     }
 
     //getter methods
@@ -39,14 +45,10 @@ public class CustomItem implements Registrable {
     public Component getName() {
         return name;
     }
-    public ItemSettings getSettings() {
-        return settings;
+    public boolean hasModel() {
+        return metaDecorator.hasModel();
     }
 
-    @Override
-    public String getId() {
-        return itemId;
-    }
 
     //note to self: please don't make anymore middleware interfaces. just fix the shitty resource pack code instead of making it even more shitty.
     public interface modelMiddleware {
@@ -68,7 +70,12 @@ public class CustomItem implements Registrable {
         return null;
     }
 
-    public static @Nullable CustomItem fromItemStack(ItemStack stack) {
+    /**
+     * Get a CustomItem from an ItemStack using the stored ID in the PDC.
+     * @param stack The ItemStack for looking up its stored ID.
+     * @return A CustomItem found in the registry with the stored ID, or null if it wasn't found.
+     */
+    public static @Nullable RegistryObject<CustomItem> fromItemStack(ItemStack stack) {
         String itemId = getIdFromItemStack(stack);
         if (itemId != null) {
             return Registries.ITEM.get(itemId);
@@ -76,13 +83,15 @@ public class CustomItem implements Registrable {
         return null;
     }
 
+
     //overridable methods
-    public void modifyItemMeta(ItemMeta itemMeta) {
-        if (settings.hasModel()) {
-            itemMeta.setItemModel(new NamespacedKey(DogeMinesFramework.NAMESPACE, itemId));
-        }
-        itemMeta.itemName(name);
-        itemMeta.getPersistentDataContainer().set(ID_KEY, PersistentDataType.STRING, itemId);
-    }
     public void onClick(Player player, CustomItemStack itemStack) {}
+
+    public BasicModel getModel(String itemId) {
+        return new BasicModel(
+                ResourcePack.getParent(material, true),
+                ResourcePack.getDogeminesPath(itemId, false),
+                false
+        );
+    }
 }

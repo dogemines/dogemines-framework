@@ -1,26 +1,29 @@
 package net.dogemines.framework.data.registry;
 
+import net.dogemines.framework.block.BlockPredicate;
+import net.dogemines.framework.block.CustomBlock;
 import net.dogemines.framework.item.CustomItem;
 import net.dogemines.framework.sound.CustomSoundEvent;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.*;
 
-public class Registries<T extends Registrable> extends Registry<T> {
+public class Registries<T> extends Registry<T> {
+
     //define registries
     public static final Registries<CustomItem> ITEM = new Registries<>();
-    public static final Registries<CustomSoundEvent> SOUND_EVENTS = new Registries<>();
+    public static final Registries<CustomSoundEvent> SOUND_EVENT = new Registries<>();
+    public static final Registries<CustomBlock> BLOCK = new Registries<>();
 
     //registry logic
     public void register(T toRegister, String id) {
-        RegistryObject<T> registryObject = new RegistryObject<>(id, toRegister);
+        RegisteredObject<T> registryObject = new RegisteredObject<>(id, toRegister);
         this.set(id, registryObject);
     }
 
     public <E extends Enum<E> & EnumRegistries.EnumRegistry<T>> void registerEnum(Class<E> enumRegistry) {
         for (E constant : enumRegistry.getEnumConstants()) {
-            T value = constant.getValue();
-            this.register(value, value.getId());
+            this.register(constant.getValue(), constant.getId());
         }
     }
 
@@ -43,8 +46,8 @@ class Registry<T> {
         immutable = true;
     }
 
-    public T get(String key) {
-        return registry.get(key).getValue();
+    public RegistryObject<T> get(String key) {
+        return registry.get(key);
     }
     public void set(String key, RegistryObject<T> value) {
         if (immutable) {
@@ -72,5 +75,22 @@ class Registry<T> {
 class ImmutableRegistryException extends RuntimeException {
     public ImmutableRegistryException(String message) {
         super(message);
+    }
+}
+
+class RegisteredObject<T> implements RegistryObject<T> {
+    private final String id;
+    private final T value;
+
+    public RegisteredObject(String id, T value) {
+        this.id = id;
+        this.value = value;
+    }
+
+    public String getId() {
+        return id;
+    }
+    public T getValue() {
+        return value;
     }
 }

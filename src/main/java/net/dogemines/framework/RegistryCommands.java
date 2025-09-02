@@ -14,7 +14,6 @@ import io.papermc.paper.command.brigadier.Commands;
 import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
 import io.papermc.paper.command.brigadier.argument.CustomArgumentType;
 import io.papermc.paper.command.brigadier.argument.resolvers.selector.PlayerSelectorArgumentResolver;
-import net.dogemines.framework.data.registry.Registrable;
 import net.dogemines.framework.data.registry.Registries;
 import net.dogemines.framework.data.registry.RegistryObject;
 import net.dogemines.framework.item.CustomItem;
@@ -105,7 +104,7 @@ final class RegistryCommands {
     }
 }
 
-class RegistryPairArgumentType<T extends Registrable> implements CustomArgumentType.Converted<@NotNull RegistryObject<T>, @NotNull String> {
+class RegistryPairArgumentType<T> implements CustomArgumentType.Converted<@NotNull RegistryObject<T>, @NotNull String> {
 
     private final Registries<T> registry;
 

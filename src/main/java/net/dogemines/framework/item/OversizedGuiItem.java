@@ -4,22 +4,23 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
+import org.jetbrains.annotations.NotNull;
 
-public class InventoryItem extends CustomItem implements CustomItem.modelMiddleware, CustomItem.itemMiddleware {
+public class OversizedGuiItem extends CustomItem implements CustomItem.modelMiddleware, CustomItem.itemMiddleware {
 
     private double inventoryScale = 1.13;
 
-    public InventoryItem(Material material, Component name, String itemId) {
-        super(material, name, itemId, ItemSettings.DEFAULT);
+    public OversizedGuiItem(Material material, Component name) {
+        super(material, name, ItemMetaDecorator.DEFAULT);
     }
 
-    public InventoryItem setInventoryScale(double inventoryScale) {
+    public OversizedGuiItem setInventoryScale(double inventoryScale) {
         this.inventoryScale = inventoryScale;
         return this;
     }
 
     @Override
-    public void modifyModelJSON(JsonObject model) {
+    public void modifyModelJSON(@NotNull JsonObject model) {
         JsonObject display = new JsonObject();
         JsonObject gui = new JsonObject();
         JsonArray scale = new JsonArray();
@@ -34,7 +35,7 @@ public class InventoryItem extends CustomItem implements CustomItem.modelMiddlew
     }
 
     @Override
-    public void modifyItemJSON(JsonObject item) {
+    public void modifyItemJSON(@NotNull JsonObject item) {
         item.addProperty("oversized_in_gui", true);
     }
 }

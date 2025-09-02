@@ -25,7 +25,8 @@ import org.jetbrains.annotations.ApiStatus;
 import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Locale;
 import java.util.logging.Logger;
 
 @ApiStatus.Internal
@@ -92,7 +93,7 @@ public class ResourcePack {
 
     // source - https://github.com/oraxen/oraxen - pack.generation.PredicatesGenerator
     private final static String[] tools = new String[]{"PICKAXE", "SWORD", "HOE", "AXE", "SHOVEL"};
-    private static String getParent(final Material material, boolean isItem) {
+    public static String getParent(final Material material, boolean isItem) {
         if (material.isBlock() && !isItem)
             return "block/cube_all";
         if (Arrays.stream(tools).anyMatch(tool -> material.toString().contains(tool)))
@@ -104,24 +105,27 @@ public class ResourcePack {
         return "item/generated";
     }
 
-    private static String getVanillaModelName(final Material material) {
+    /*public static String getVanillaModelName(final Material material) {
         return getVanillaTextureName(material, true);
     }
 
-    private static String getVanillaTextureName(final Material material, final boolean model) {
+    public static String getVanillaTextureName(final Material material, final boolean model) {
         if (!model)
             if (material.isBlock()) return "block/" + material.toString().toLowerCase(Locale.ENGLISH);
             else if (material == Material.CROSSBOW) return "item/crossbow_standby";
         return "item/" + material.toString().toLowerCase(Locale.ENGLISH);
+    }*/
+    //----------------------------------------------------------------------------------------------------
+
+
+    public static String getDogeminesPath(RegistryObject<?> item) {
+        return getDogeminesPath(item.getId(), item.getValue() instanceof CustomBlock);
     }
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-    private static String getDogeminesPath(RegistryObject<?> item) {
-        if (item.getValue() instanceof CustomBlock) {
-            return "dogemines:block/" + item.getId().toLowerCase(Locale.ENGLISH);
+    public static String getDogeminesPath(String itemId, boolean isBlock) {
+        if (isBlock) {
+            return "dogemines:block/" + itemId.toLowerCase(Locale.ENGLISH);
         } else {
-            return "dogemines:item/" + item.getId().toLowerCase(Locale.ENGLISH);
+            return "dogemines:item/" + itemId.toLowerCase(Locale.ENGLISH);
         }
     }
 
@@ -129,37 +133,37 @@ public class ResourcePack {
         if (instrument.equals(Instrument.PIANO)) {
             return "harp";
         }
-        if (instrument.equals(Instrument.BASS_DRUM)) {
+        else if (instrument.equals(Instrument.BASS_DRUM)) {
             return "basedrum";
         }
-        if (instrument.equals(Instrument.SNARE_DRUM)) {
+        else if (instrument.equals(Instrument.SNARE_DRUM)) {
             return "snare";
         }
-        if (instrument.equals(Instrument.STICKS)) {
+        else if (instrument.equals(Instrument.STICKS)) {
             return "hat";
         }
-        if (instrument.equals(Instrument.BASS_GUITAR)) {
+        else if (instrument.equals(Instrument.BASS_GUITAR)) {
             return "bass";
         }
-        if (instrument.equals(Instrument.ZOMBIE)) {
+        else if (instrument.equals(Instrument.ZOMBIE)) {
             return "imitate.zombie";
         }
-        if (instrument.equals(Instrument.SKELETON)) {
+        else if (instrument.equals(Instrument.SKELETON)) {
             return "imitate.skeleton";
         }
-        if (instrument.equals(Instrument.CREEPER)) {
+        else if (instrument.equals(Instrument.CREEPER)) {
             return "imitate.creeper";
         }
-        if (instrument.equals(Instrument.DRAGON)) {
+        else if (instrument.equals(Instrument.DRAGON)) {
             return "imitate.dragon";
         }
-        if (instrument.equals(Instrument.WITHER_SKELETON)) {
+        else if (instrument.equals(Instrument.WITHER_SKELETON)) {
             return "imitate.wither_skeleton";
         }
-        if (instrument.equals(Instrument.PIGLIN)) {
+        else if (instrument.equals(Instrument.PIGLIN)) {
             return "imitate.piglin";
         }
-        if (instrument.equals(Instrument.CUSTOM_HEAD)) {
+        else if (instrument.equals(Instrument.CUSTOM_HEAD)) {
             return "";
         } else {
             return instrument.name().toLowerCase();
@@ -243,7 +247,7 @@ public class ResourcePack {
         //-----------------------
         for (RegistryObject<CustomItem> itemEntry : Registries.ITEM.getPairs()) {
             CustomItem customItem = itemEntry.getValue();
-            if (customItem.getSettings().hasModel()) {
+            if (customItem.hasModel()) {
 
                 File modelFile;
                 String fileName = itemEntry.getId().toLowerCase(Locale.ENGLISH) + ".json";
@@ -386,7 +390,7 @@ public class ResourcePack {
         File soundsFile = new File(newMinecraftDir, "sounds.json");
         JsonObject soundsJson = new JsonObject();
 
-        for (RegistryObject<CustomSoundEvent> sound : Registries.SOUND_EVENTS.getPairs()) {
+        for (RegistryObject<CustomSoundEvent> sound : Registries.SOUND_EVENT.getPairs()) {
             CustomSoundEvent soundEvent = sound.getValue();
             JsonArray soundEventArray = new JsonArray();
 

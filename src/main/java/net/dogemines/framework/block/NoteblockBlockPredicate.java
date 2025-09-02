@@ -1,38 +1,55 @@
 package net.dogemines.framework.block;
 
-import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import com.google.gson.annotations.Expose;
+import net.dogemines.framework.data.BasicModel;
 import net.dogemines.framework.data.ResourcePack;
 import org.bukkit.Instrument;
 import org.bukkit.Material;
 import org.bukkit.Note;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.NoteBlock;
+import org.jetbrains.annotations.NotNull;
 
-public record NoteblockBlockPredicate(
-        String instrument,
-        int note,
-        boolean powered
+public class NoteblockBlockPredicate implements BlockPredicate {
 
-) implements CustomBlock.BlockPredicate {
-    public NoteblockBlockPredicate(Instrument instrument, int note, boolean powered) {
-        this(ResourcePack.instrumentToVanillaName(instrument), note, powered);
+    private static final Material MATERIAL = Material.NOTE_BLOCK;
+
+    private final NoteBlock blockData;
+    @Expose private final String instrument;
+    @Expose private final int note;
+    @Expose private final boolean powered;
+
+    public NoteblockBlockPredicate(Instrument bukkitInstrument, int note, boolean powered) {
+        this.powered = powered;
+        this.instrument = ResourcePack.instrumentToVanillaName(bukkitInstrument);
+        this.note = note;
+
+        blockData = (NoteBlock) MATERIAL.createBlockData();
+        blockData.setNote(new Note(note));
+        blockData.setInstrument(bukkitInstrument);
+        blockData.setPowered(powered);
     }
 
     @Override
-    public JsonObject getJson() {
-        return new Gson().toJsonTree(this).getAsJsonObject();
+    public void setBlock(@NotNull Block block) {
+        block.setBlockData(blockData, false);
     }
 
     @Override
-    public void setBlock(Block block) {
-        block.setType(Material.NOTE_BLOCK, false);
-        NoteBlock noteblock = (NoteBlock) block.getBlockData();
+    public BlockData getBlockData() {
+        return blockData;
+    }
 
-        noteblock.setInstrument(Instrument.valueOf(instrument));
-        noteblock.setNote(new Note(this.note));
-        noteblock.setPowered(this.powered);
+    @Override
+    public Material getMaterial() {
+        return MATERIAL;
+    }
 
-        block.setBlockData(noteblock, false);
+    @Override
+    public BasicModel getModel(String blockId) {
+        return null;
     }
 }

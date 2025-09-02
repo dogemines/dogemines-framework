@@ -2,6 +2,7 @@ package net.dogemines.framework;
 
 import io.papermc.paper.command.brigadier.Commands;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
+import net.dogemines.framework.test.DefaultBlocks;
 import net.dogemines.framework.data.RPHttpServer;
 import net.dogemines.framework.data.ResourcePack;
 import net.dogemines.framework.data.registry.Registries;
@@ -11,7 +12,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public final class DogeMinesFramework extends JavaPlugin {
 
-    public static final String NAMESPACE = "dogemines";
+    public static final String NAMESPACE = "dogeframework";
     public static final String VERSION = "1.0alpha";
     private static ResourcePack resourcePack;
     private static RPHttpServer httpServer;
@@ -25,6 +26,7 @@ public final class DogeMinesFramework extends JavaPlugin {
 
         //register default enums
         Registries.ITEM.registerEnum(DefaultInventoryItems.class);
+        Registries.BLOCK.registerEnum(DefaultBlocks.class);
 
         //register commands
         this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, commands -> {
