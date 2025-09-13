@@ -10,13 +10,13 @@ import org.bukkit.block.Block;
 
 import java.util.function.Consumer;
 
-public class BlockRegion {
+public class WorldBlockRegion {
 
     private final int minX, minY, minZ;
     private final int maxX, maxY, maxZ;
     private final World world;
 
-    public BlockRegion(int x1, int y1, int z1, int x2, int y2, int z2, World world) {
+    public WorldBlockRegion(World world, int x1, int y1, int z1, int x2, int y2, int z2) {
         this.world = world;
         this.minX = Math.min(x1, x2);
         this.maxX = Math.max(x1, x2);
@@ -28,8 +28,8 @@ public class BlockRegion {
         this.maxZ = Math.max(z1, z2);
     }
 
-    public BlockRegion(Location startLoc, Location endLoc, World world) {
-        this(startLoc.getBlockX(), startLoc.getBlockY(), startLoc.getBlockZ(), endLoc.getBlockX(), endLoc.getBlockY(), endLoc.getBlockZ(), world);
+    public WorldBlockRegion(World world, Location startLoc, Location endLoc) {
+        this(world, startLoc.getBlockX(), startLoc.getBlockY(), startLoc.getBlockZ(), endLoc.getBlockX(), endLoc.getBlockY(), endLoc.getBlockZ());
     }
 
     public boolean contains(Location loc) {
@@ -83,12 +83,12 @@ public class BlockRegion {
         }
     }
 
-    public BlockRegion getTopLayer() {
-        return new BlockRegion(this.minX, this.maxY, this.minZ, this.maxX, this.maxY, this.maxZ, this.world);
+    public WorldBlockRegion getTopLayer() {
+        return new WorldBlockRegion(this.world, this.minX, this.maxY, this.minZ, this.maxX, this.maxY, this.maxZ);
     }
 
-    public BlockRegion getAllButTop() {
-        return new BlockRegion(this.minX, this.minY, this.minZ, this.maxX, this.maxY - 1, this.maxZ, this.world);
+    public WorldBlockRegion getAllButTop() {
+        return new WorldBlockRegion(this.world, this.minX, this.minY, this.minZ, this.maxX, this.maxY - 1, this.maxZ);
     }
 
 }

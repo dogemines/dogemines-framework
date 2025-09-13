@@ -6,7 +6,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.jetbrains.annotations.NotNull;
 
-public final class InventoryHandler implements Listener {
+public final class InventoryEventHandler implements Listener {
     @EventHandler
     public void onInventoryClick(@NotNull InventoryClickEvent event) {
         Inventory inventory = event.getInventory();

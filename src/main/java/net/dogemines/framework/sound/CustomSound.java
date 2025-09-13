@@ -3,9 +3,10 @@ package net.dogemines.framework.sound;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import net.dogemines.framework.DogeMinesFramework;
+import org.bukkit.NamespacedKey;
 
 public record CustomSound(
-        String filename,
+        String name,
         Float volume,
         Float pitch,
         Integer weight,
@@ -34,7 +35,7 @@ public record CustomSound(
     }
 
     public static class Builder {
-        private String filename;
+        private String name;
         private Float volume;
         private Float pitch;
         private Integer weight;
@@ -44,7 +45,7 @@ public record CustomSound(
         private String type;
 
         public Builder name(String name) {
-            this.filename = DogeMinesFramework.NAMESPACE + ":" + name;
+            this.name = name;
             return this;
         }
 
@@ -85,7 +86,7 @@ public record CustomSound(
 
         public CustomSound build() {
             return new CustomSound(
-                    filename,
+                    name,
                     volume,
                     pitch,
                     weight,

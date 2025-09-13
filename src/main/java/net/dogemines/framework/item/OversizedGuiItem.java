@@ -13,6 +13,9 @@ public class OversizedGuiItem extends CustomItem implements CustomItem.modelMidd
     public OversizedGuiItem(Material material, Component name) {
         super(material, name, ItemMetaDecorator.DEFAULT);
     }
+    public OversizedGuiItem(Material material, Component name, ItemMetaDecorator decorator) {
+        super(material, name, decorator);
+    }
 
     public OversizedGuiItem setInventoryScale(double inventoryScale) {
         this.inventoryScale = inventoryScale;

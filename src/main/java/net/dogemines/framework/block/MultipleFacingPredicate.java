@@ -1,10 +1,8 @@
 package net.dogemines.framework.block;
 
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
 import com.google.gson.annotations.Expose;
-import net.dogemines.framework.data.BasicModel;
-import net.dogemines.framework.data.ResourcePack;
+import net.dogemines.framework.data.resource.BasicModel;
+import net.dogemines.framework.data.resource.ResourcePack;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -19,7 +17,7 @@ import java.util.BitSet;
 public class MultipleFacingPredicate implements BlockPredicate {
 
     //define static lists
-    private static final Material[] TYPES = new Material[] {
+    public static final Material[] TYPES = new Material[] {
             Material.BROWN_MUSHROOM_BLOCK,
             Material.RED_MUSHROOM_BLOCK,
             Material.MUSHROOM_STEM
@@ -101,12 +99,4 @@ public class MultipleFacingPredicate implements BlockPredicate {
         return blockData.getMaterial();
     }
 
-    @Override
-    public BasicModel getModel(String blockId) {
-        return new BasicModel(
-                ResourcePack.getParent(blockData.getMaterial(), false),
-                ResourcePack.getDogeminesPath(blockId, true),
-                true
-        );
-    }
 }

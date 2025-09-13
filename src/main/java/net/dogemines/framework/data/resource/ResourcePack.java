@@ -1,7 +1,7 @@
 // Handles creation and uploading of the doge mines resource pack.
 // 2023 - Piggy Gaming
 
-package net.dogemines.framework.data;
+package net.dogemines.framework.data.resource;
 
 import com.google.common.io.BaseEncoding;
 import com.google.gson.Gson;
@@ -9,7 +9,11 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.dogemines.framework.DogeMinesFramework;
+import net.dogemines.framework.block.BlockPredicate;
 import net.dogemines.framework.block.CustomBlock;
+import net.dogemines.framework.block.CustomBlockState;
+import net.dogemines.framework.block.MultipleFacingPredicate;
+import net.dogemines.framework.data.DogeFileUtils;
 import net.dogemines.framework.data.registry.Registries;
 import net.dogemines.framework.data.registry.RegistryObject;
 import net.dogemines.framework.item.BlockItem;
@@ -18,6 +22,7 @@ import net.dogemines.framework.sound.CustomSound;
 import net.dogemines.framework.sound.CustomSoundEvent;
 import org.bukkit.Instrument;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.codehaus.plexus.util.FileUtils;
 import org.jetbrains.annotations.ApiStatus;
@@ -25,18 +30,24 @@ import org.jetbrains.annotations.ApiStatus;
 import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.Locale;
+import java.util.*;
 import java.util.logging.Logger;
 
 @ApiStatus.Internal
 public class ResourcePack {
 
-    private final File assets;
+    private final HostingMethod hostingMethod;
+
+    private File assets;
     private File zipfile;
     private byte[] sha1;
 
-    public ResourcePack() {
+    public ResourcePack(HostingMethod hostingMethod) {
+        this.hostingMethod = hostingMethod;
+        generate();
+    }
+
+    public void generate() {
         JavaPlugin plugin = DogeMinesFramework.getInstance();
         Logger log = plugin.getLogger();
         File datafolder = plugin.getDataFolder();
@@ -55,13 +66,21 @@ public class ResourcePack {
         resourceoutput.mkdir();
 
         try {
-            generate(resourceoutput);
+            generateInternal(resourceoutput);
         } catch (IOException e) {
             log.warning("could not generate resource pack");
             throw new RuntimeException(e);
         }
 
         log.info("done generating resource pack!");
+
+        //host resource pack
+        log.info("hosting resource pack...");
+        hostingMethod.hostPack(this.zipfile);
+    }
+
+    public HostingMethod getHostingMethod() {
+        return this.hostingMethod;
     }
 
     public File getFile() {
@@ -75,8 +94,13 @@ public class ResourcePack {
     private File copyFile(String path, File output) throws IOException {
         File file1 = new File(assets.getPath() + "/" + path);
         File file2 = new File(output.getPath() + "/" + path);
-        FileUtils.copyFile(file1, file2);
-        return file2;
+        if (file1.exists()) {
+            FileUtils.copyFile(file1, file2);
+            return file2;
+        }
+        else {
+            return null;
+        }
     }
 
     private static File newDirectory(File parent, String directory) {
@@ -93,8 +117,8 @@ public class ResourcePack {
 
     // source - https://github.com/oraxen/oraxen - pack.generation.PredicatesGenerator
     private final static String[] tools = new String[]{"PICKAXE", "SWORD", "HOE", "AXE", "SHOVEL"};
-    public static String getParent(final Material material, boolean isItem) {
-        if (material.isBlock() && !isItem)
+    public static String getParent(final Material material, boolean isBlock) {
+        if (material.isBlock() && isBlock)
             return "block/cube_all";
         if (Arrays.stream(tools).anyMatch(tool -> material.toString().contains(tool)))
             return "item/handheld";
@@ -118,14 +142,17 @@ public class ResourcePack {
     //----------------------------------------------------------------------------------------------------
 
 
-    public static String getDogeminesPath(RegistryObject<?> item) {
-        return getDogeminesPath(item.getId(), item.getValue() instanceof CustomBlock);
+    private static boolean isBlock(RegistryObject<?> toCheck) {
+        return toCheck.getValue() instanceof CustomBlock || toCheck.getValue() instanceof BlockItem;
     }
-    public static String getDogeminesPath(String itemId, boolean isBlock) {
+    public static String getDogeminesPath(RegistryObject<?> item) {
+        return getDogeminesPath(item.getKey(), isBlock(item));
+    }
+    public static String getDogeminesPath(NamespacedKey itemId, boolean isBlock) {
         if (isBlock) {
-            return "dogemines:block/" + itemId.toLowerCase(Locale.ENGLISH);
+            return itemId.getNamespace() + ":block/" + itemId.getKey();
         } else {
-            return "dogemines:item/" + itemId.toLowerCase(Locale.ENGLISH);
+            return itemId.getNamespace() + ":item/" + itemId.getKey();
         }
     }
 
@@ -170,28 +197,55 @@ public class ResourcePack {
         }
     }
 
-    public File generate(File output) throws IOException {
+    private record NamespacedDirectoryStructure(File mainDir, File modelItemDir, File modelBlockDir, File itemsDir, File soundsFile) { }
 
-        Gson gsonbuild = new GsonBuilder().setPrettyPrinting().create();
+    private void setupNamespacedDir(String namespace) throws IOException {
+        File newMainDir = newDirectory(newAssets, namespace);
+        FileUtils.copyDirectoryStructure(new File(assets, namespace), newMainDir);
 
-        File newAssets = newDirectory(output, "assets");
-        File newMinecraftDir = newDirectory(newAssets, "minecraft");
-        File newDogeDirectory = newDirectory(newAssets, "dogemines");
+        File newModelItemDir = newDirectory(newMainDir, "models/item");
+        File newModelBlockDir = newDirectory(newMainDir, "models/block");
+        File newItemsDir = newDirectory(newMainDir, "items");
+        File soundsFile = new File(newMainDir, "sounds.json");
 
-        File newMcMeta = copyFile("pack.mcmeta", output);
-        File newPackImage = copyFile("pack.png", output);
+        namespacedDirs.put(namespace, new NamespacedDirectoryStructure(
+                newMainDir,
+                newModelItemDir,
+                newModelBlockDir,
+                newItemsDir,
+                soundsFile
+        ));
+    }
+
+    private File newAssets;
+    private File newMinecraftDir;
+    private final HashMap<String, NamespacedDirectoryStructure> namespacedDirs = new HashMap<>();
+
+    private void generateInternal(File output) throws IOException {
+
+        final Gson gsonbuild = new GsonBuilder()
+                .setPrettyPrinting()
+                .create();
+
+        this.newAssets = newDirectory(output, "assets");
+        this.newMinecraftDir = newDirectory(newAssets, "minecraft");
+
+        final File newMcMeta = copyFile("pack.mcmeta", output);
+        final File newPackImage = copyFile("pack.png", output);
+        copyFile("README.txt", output);
 
         FileUtils.copyDirectoryStructure(new File(assets, "minecraft"), newMinecraftDir);
-        FileUtils.copyDirectoryStructure(new File(assets, "dogemines"), newDogeDirectory);
 
-        File mcModelItemDir = newDirectory(newMinecraftDir, "models/item");
+        final File mcModelItemDir = newDirectory(newMinecraftDir, "models/item");
+        final File blockstateDir = newDirectory(newMinecraftDir, "blockstates");
 
-        File dogeModelItemDir = newDirectory(newDogeDirectory, "models/item");
-        File dogeModelBlockDir = newDirectory(newDogeDirectory, "models/block");
+        final File fontDir = newDirectory(newMinecraftDir, "font");
+        final File fontFile = new File(fontDir, "default.json");
 
-        File dogeItemsDir = newDirectory(newDogeDirectory, "items");
-
-        File blockstateDir = newDirectory(newMinecraftDir, "blockstates");
+        //setup namespaced directory
+        for (String namespace : Registries.getAllNamespaces()) {
+            setupNamespacedDir(namespace);
+        }
 
 
         //-----------------------------
@@ -248,23 +302,27 @@ public class ResourcePack {
         for (RegistryObject<CustomItem> itemEntry : Registries.ITEM.getPairs()) {
             CustomItem customItem = itemEntry.getValue();
             if (customItem.hasModel()) {
+                boolean isBlock = isBlock(itemEntry);
 
+                //TODO: old code, adapt to new BasicModel class
                 File modelFile;
                 String fileName = itemEntry.getId().toLowerCase(Locale.ENGLISH) + ".json";
 
                 JsonObject modelJSON = new JsonObject();
 
                 //parent
-                modelJSON.addProperty("parent", getParent(customItem.getMaterial(), true));
+                modelJSON.addProperty("parent", getParent(customItem.getMaterial(), isBlock));
 
                 //textures
                 JsonObject textures = new JsonObject();
 
-                if (customItem instanceof BlockItem) {
-                    modelFile = new File(dogeModelBlockDir, fileName);
+                NamespacedDirectoryStructure namespacedDir = namespacedDirs.get(itemEntry.getNamespace());
+
+                if (isBlock) {
+                    modelFile = new File(namespacedDir.modelBlockDir, fileName);
                     textures.addProperty("all", getDogeminesPath(itemEntry));
                 } else {
-                    modelFile = new File(dogeModelItemDir, fileName);
+                    modelFile = new File(namespacedDir.modelItemDir, fileName);
                     textures.addProperty("layer0", getDogeminesPath(itemEntry));
                 }
                 modelJSON.add("textures", textures);
@@ -279,7 +337,7 @@ public class ResourcePack {
 
                 //file in items directory
                 //--------------------------------------------
-                File itemFile = new File(dogeItemsDir, fileName);
+                File itemFile = new File(namespacedDir.itemsDir, fileName);
                 JsonObject itemJSON = new JsonObject();
 
                 //model
@@ -301,96 +359,58 @@ public class ResourcePack {
 
         }
 
-
         //---------------------------
         //   blockstate predicates
         //---------------------------
+        final Map<Material, JsonObject> BLOCKSTATE_JSON = new HashMap<>();
+        final Map<Material, JsonArray> MULTIPART_JSON = new HashMap<>();
+        final Map<Material, File> BLOCKSTATE_FILES = new HashMap<>();
 
-        JsonObject mushroomJson = new JsonObject();
-        JsonObject noteblockJson = new JsonObject();
+        //fill maps
+        for (Material material : MultipleFacingPredicate.TYPES) {
+            JsonObject blockstate = new JsonObject();
+            JsonArray multipart = new JsonArray();
+            blockstate.add("multipart", multipart);
 
-        //create child JsonObjects for both parents
-        JsonArray multipart_mushroom = new JsonArray();
-        JsonArray multipart_noteblock = new JsonArray();
-
-        //file objects
-        File mushroomFile = new File(blockstateDir, "brown_mushroom_block.json");
-        File noteblockFile = new File(blockstateDir, "note_block.json");
-
-        //loop through all blocks
-        /*for (DogeBlock block : ItemRegistry.blocks.values()) {
-
-            //brown_mushroom_block
-            if (block.type == DogeBlock.CustomBlockType.brownMushroom) {
-
-                JsonObject data = new JsonObject();
-                JsonObject when = new JsonObject();
-
-                when.addProperty("down", block.down);
-                when.addProperty("east", block.east);
-                when.addProperty("north", block.north);
-                when.addProperty("south", block.south);
-                when.addProperty("up", block.up);
-                when.addProperty("west", block.west);
-
-                data.add("when", when);
-
-                JsonObject apply = new JsonObject();
-                apply.addProperty("model", getDogeminesPath(block.DogeBlockItem));
-                data.add("apply", apply);
-
-                multipart_mushroom.add(data);
-
-            }
-
-            //note_block
-            if (block.type == DogeBlock.CustomBlockType.noteblock) {
-
-                JsonObject data = new JsonObject();
-                JsonObject when = new JsonObject();
-
-                when.addProperty("instrument", instrumentToVanillaName(block.instrument));
-                when.addProperty("note", block.note);
-                when.addProperty("powered", block.powered);
-
-                data.add("when", when);
-
-                JsonObject apply = new JsonObject();
-                apply.addProperty("model", getDogeminesPath(block.DogeBlockItem));
-                data.add("apply", apply);
-
-                multipart_noteblock.add(data);
-
-            }
-
-
+            BLOCKSTATE_JSON.put(material, blockstate);
+            MULTIPART_JSON.put(material, multipart);
+            BLOCKSTATE_FILES.put(material, new File(blockstateDir, material.name().toLowerCase() + ".json"));
         }
 
-        //add the multipart json to the main json object
-        mushroomJson.add("multipart", multipart_mushroom);
-        noteblockJson.add("multipart", multipart_noteblock);
 
-        //create the mushroom block file
-        if (mushroomFile.createNewFile()) {
-            FileUtils.fileWrite(mushroomFile, gsonbuild.toJson(mushroomJson));
-        } else {
-            DogeMines.getPlugin(DogeMines.class).getLogger().warning("error when generating resource pack: unable to create blockstates file for mushroom blocks");
+        //create json
+        for (RegistryObject<CustomBlock> blockObject : Registries.BLOCK.getPairs()) {
+            CustomBlock block = blockObject.getValue();
+
+            for (CustomBlockState blockState : block.getBlockStates()) {
+                BlockPredicate predicate = blockState.getPredicate();
+
+                MULTIPART_JSON.get(predicate.getMaterial())
+                        .add(blockState.getJson(blockObject.getKey()));
+
+            }
         }
 
-        //create the note block file
-        if (noteblockFile.createNewFile()) {
-            FileUtils.fileWrite(noteblockFile, gsonbuild.toJson(noteblockJson));
-        } else {
-            DogeMines.getPlugin(DogeMines.class).getLogger().warning("error when generating resource pack: unable to create blockstates file for note blocks");
-        }*/
+
+        //write files
+        for (Map.Entry<Material, File> entry : BLOCKSTATE_FILES.entrySet()) {
+            FileUtils.fileWrite(
+                    entry.getValue(),
+                    gsonbuild.toJson(BLOCKSTATE_JSON.get(entry.getKey()))
+            );
+        }
 
         //------------------
         //   sounds.json
         //------------------
-        File soundsFile = new File(newMinecraftDir, "sounds.json");
-        JsonObject soundsJson = new JsonObject();
+        final HashMap<String, JsonObject> soundsJsons = new HashMap<>();
+        for (String namespace : Registries.getAllNamespaces()) {
+            soundsJsons.put(namespace, new JsonObject());
+        }
 
         for (RegistryObject<CustomSoundEvent> sound : Registries.SOUND_EVENT.getPairs()) {
+            JsonObject soundsJson = soundsJsons.get(sound.getNamespace());
+
             CustomSoundEvent soundEvent = sound.getValue();
             JsonArray soundEventArray = new JsonArray();
 
@@ -403,14 +423,37 @@ public class ResourcePack {
             soundsJson.add(sound.getId(), soundEventJson);
         }
 
-        FileUtils.fileWrite(soundsFile, gsonbuild.toJson(soundsJson));
+        for (Map.Entry<String, JsonObject> entry : soundsJsons.entrySet()) {
+            NamespacedDirectoryStructure namespacedDir = namespacedDirs.get(entry.getKey());
+            FileUtils.fileWrite(namespacedDir.soundsFile, gsonbuild.toJson(entry.getValue()));
+        }
+
+
+        //--------------------------
+        //   custom unicode chars
+        //--------------------------
+        final JsonObject fontJson = new JsonObject();
+        final JsonArray providers = new JsonArray();
+
+        for (RegistryObject<UnicodeChar> charObject : Registries.UNICODE_CHAR.getPairs()) {
+            final UnicodeChar unicodeChar = charObject.getValue();
+            if (unicodeChar instanceof BitmapUnicodeChar bitmapChar) {
+                providers.add(bitmapChar.getJson(charObject.getNamespace()));
+            }
+        }
+        //add entire space advance block
+        providers.add(BitmapUnicodeChar.SpaceAdvance.getEntireJson());
+
+        fontJson.add("providers", providers);
+        FileUtils.fileWrite(fontFile, gsonbuild.toJson(fontJson)
+                .replace("\\\\u", "\\u")); //because gson escapes all unicode characters, we need to do some post-processing on the json string
 
 
         //------------------
         //   zipping pack
         //------------------
 
-        File zos = new File(output.getParentFile(), "dogemines-rp-" + DogeMinesFramework.VERSION + ".zip");
+        File zos = new File(output.getParentFile(), "dogemines-resources.zip");
         DogeFileUtils.zip(output, zos);
         zipfile = zos;
 
@@ -421,7 +464,6 @@ public class ResourcePack {
         } catch (NoSuchAlgorithmException e) {
             DogeMinesFramework.getInstance().getLogger().warning(e.toString());
         }
-        return zipfile;
     }
 
 

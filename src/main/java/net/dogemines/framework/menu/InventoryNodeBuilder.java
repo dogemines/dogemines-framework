@@ -1,6 +1,7 @@
 package net.dogemines.framework.menu;
 
 import net.dogemines.framework.item.CustomItemStack;
+import net.dogemines.framework.test.DefaultItems;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
@@ -26,7 +27,7 @@ public class InventoryNodeBuilder extends MenuBuilder<InventoryNodeBuilder> impl
         if (parent != null) {
             int index = contents.length + buttonLocation.getInventoryOffset();
 
-            set(index, CustomItemStack.of(DefaultInventoryItems.INVENTORY_BACK));
+            set(index, CustomItemStack.of(DefaultItems.INVENTORY_BACK));
             links.put(index, parent);
         }
     }

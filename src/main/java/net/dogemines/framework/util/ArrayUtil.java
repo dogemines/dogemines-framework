@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-public final class GeneralUtil {
+public final class ArrayUtil {
     public static <T> List<T[]> splitArray(T[] array, int rowSize) {
         List<T[]> result = new ArrayList<>();
         int length = array.length;
@@ -27,5 +27,11 @@ public final class GeneralUtil {
         int randomIndex = random.nextInt(array.length); // 0 to fruits.length-1
 
         return array[randomIndex];
+    }
+
+    public static <T> void addIfExists(List<T> list, T value) {
+        if (value != null) {
+            list.add(value);
+        }
     }
 }

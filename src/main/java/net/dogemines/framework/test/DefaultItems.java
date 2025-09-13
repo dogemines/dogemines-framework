@@ -1,21 +1,27 @@
 package net.dogemines.framework.test;
 
+import net.dogemines.framework.DogeMinesFramework;
 import net.dogemines.framework.data.registry.EnumRegistries;
 import net.dogemines.framework.item.BlockItem;
 import net.dogemines.framework.item.CustomItem;
+import net.dogemines.framework.item.OversizedGuiItem;
+import net.dogemines.framework.menu.TextColors;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 
 public enum DefaultItems implements EnumRegistries.Item {
-    TEST_ITEM(new CustomItem(Material.PAPER, Component.text("Test Item")), "test_item"),
-    TEST_BLOCK(new BlockItem(DefaultBlocks.TEST_BLOCK, Component.text("Test Block")), "test_block");
+    TEST_ITEM(new CustomItem(Material.PAPER, Component.text("Test Item"))),
+    TEST_BLOCK(new BlockItem(DefaultBlocks.TEST_BLOCK, Component.text("Test Block"))),
+
+    INVENTORY_FILLER(new OversizedGuiItem(Material.GLASS_PANE, Component.text(" "))),
+    INVENTORY_BACK(new OversizedGuiItem(Material.GLASS_PANE, Component.text("<-- Back", TextColors.PASTEL_BLUE.getColor()))),
+    INVENTORY_NEXT(new OversizedGuiItem(Material.GLASS_PANE,  Component.text("Next -->", TextColors.PASTE_PURPLE.getColor())));
 
     private final CustomItem item;
-    private final String itemId;
 
-    DefaultItems(CustomItem item, String itemId) {
+    DefaultItems(CustomItem item) {
         this.item = item;
-        this.itemId = itemId;
     }
 
     @Override
@@ -24,7 +30,7 @@ public enum DefaultItems implements EnumRegistries.Item {
     }
 
     @Override
-    public String getId() {
-        return itemId;
+    public NamespacedKey getKey() {
+        return new NamespacedKey(DogeMinesFramework.NAMESPACE, this.name().toLowerCase());
     }
 }

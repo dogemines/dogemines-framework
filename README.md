@@ -8,7 +8,7 @@ A server development framework for use with PaperMC servers, which is developed 
 The library features creation of various custom objects that can have custom textures or be interacted with in different ways
 - Custom textured item and tool creation.
 - Custom textured block and tile entity creation.
-- Custom sound event creation done through a builder
+- Custom sound event creation
 
 **Menus**\
 Menus can be shown to a player and can have callbacks that run when the player selects a certain option.

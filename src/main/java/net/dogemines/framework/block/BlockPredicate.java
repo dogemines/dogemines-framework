@@ -3,7 +3,7 @@ package net.dogemines.framework.block;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import net.dogemines.framework.DogeMinesFramework;
-import net.dogemines.framework.data.BasicModel;
+import net.dogemines.framework.data.resource.BasicModel;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
@@ -18,7 +18,6 @@ public interface BlockPredicate {
     void setBlock(Block block);
     BlockData getBlockData();
     Material getMaterial();
-    BasicModel getModel(String blockId);
 
     static @Nullable JsonObject getPredicateJson(BlockPredicate blockPredicate) {
         if (blockPredicate instanceof Unmodeled) { return null; }
@@ -57,11 +56,6 @@ public interface BlockPredicate {
         @Override
         public Material getMaterial() {
             return material;
-        }
-
-        @Override
-        public BasicModel getModel(String blockId) {
-            return null;
         }
 
         @Contract("_ -> new")

@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class InventoryMenu implements InventoryHolder, Clickable {
+public class InventoryMenu implements InventoryHolder, Clickable, PlayerOpenable {
 
     private final Inventory inventory;
     private final Map<Integer, ClickCallback> clickCallbacks;
@@ -38,6 +38,7 @@ public class InventoryMenu implements InventoryHolder, Clickable {
         return this.inventory;
     }
 
+    @Override
     public void openInventory(@NotNull Player player) {
         if (!inCooldown.contains(player)) {
             player.openInventory(inventory);

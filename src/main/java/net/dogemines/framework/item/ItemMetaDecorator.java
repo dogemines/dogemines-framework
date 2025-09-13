@@ -1,6 +1,7 @@
 package net.dogemines.framework.item;
 
 import net.dogemines.framework.DogeMinesFramework;
+import net.kyori.adventure.text.Component;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
@@ -19,11 +20,16 @@ public class ItemMetaDecorator {
         return hasModel;
     }
 
-    public void modifyItemMeta(ItemMeta itemMeta, String itemId, CustomItem item) {
+    //overridable
+    public Component getName(CustomItem item) {
+        return item.getName();
+    }
+
+    public void modifyItemMeta(ItemMeta itemMeta, NamespacedKey itemId, CustomItem item) {
         if (hasModel) {
-            itemMeta.setItemModel(new NamespacedKey(DogeMinesFramework.NAMESPACE, itemId));
+            itemMeta.setItemModel(itemId);
         }
-        itemMeta.itemName(item.getName());
-        itemMeta.getPersistentDataContainer().set(ID_KEY, PersistentDataType.STRING, itemId);
+        itemMeta.itemName(getName(item));
+        itemMeta.getPersistentDataContainer().set(ID_KEY, PersistentDataType.STRING, itemId.asString());
     }
 }

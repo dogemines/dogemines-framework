@@ -4,18 +4,19 @@ import net.dogemines.framework.block.BlockPredicate;
 import net.dogemines.framework.block.CustomBlock;
 import net.dogemines.framework.data.registry.RegistryObject;
 import net.kyori.adventure.text.Component;
+import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.meta.BlockDataMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 
 public class BlockItem extends CustomItem {
     private final CustomBlock block;
-    private final BlockPredicate defaultState;
+    private final BlockPredicate defaultPredicate;
 
     public BlockItem(@NotNull CustomBlock block, Component name, ItemMetaDecorator metaDecorator) {
-        super(block.getDefaultState().getMaterial(), name, metaDecorator);
+        super(block.getDefaultState().getPredicate().getMaterial(), name, metaDecorator);
         this.block = block;
-        this.defaultState = block.getDefaultState();
+        this.defaultPredicate = block.getDefaultState().getPredicate();
     }
     public BlockItem(CustomBlock block, Component name) {
         this(block, name, ItemMetaDecorator.DEFAULT);
@@ -30,9 +31,9 @@ public class BlockItem extends CustomItem {
     }
 
     @Override
-    public void modifyItemMeta(ItemMeta itemMeta, String itemId) {
+    public void modifyItemMeta(ItemMeta itemMeta, NamespacedKey itemId) {
         BlockDataMeta blockDataMeta = (BlockDataMeta) itemMeta;
-        blockDataMeta.setBlockData(defaultState.getBlockData());
+        blockDataMeta.setBlockData(defaultPredicate.getBlockData());
 
         super.modifyItemMeta(blockDataMeta, itemId);
     }

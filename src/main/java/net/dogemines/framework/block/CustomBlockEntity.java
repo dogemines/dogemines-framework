@@ -1,4 +1,5 @@
 package net.dogemines.framework.block;
 
-public class CustomBlockEntity {
-}
+import java.util.List;
+
+public class CustomBlockEntity {}

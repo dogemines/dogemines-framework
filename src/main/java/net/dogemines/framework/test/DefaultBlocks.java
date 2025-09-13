@@ -1,17 +1,17 @@
 package net.dogemines.framework.test;
 
+import net.dogemines.framework.DogeMinesFramework;
 import net.dogemines.framework.block.CustomBlock;
 import net.dogemines.framework.data.registry.EnumRegistries;
+import org.bukkit.NamespacedKey;
 
 public enum DefaultBlocks implements EnumRegistries.Block {
-   TEST_BLOCK(new CustomBlock(10), "test_block");
+   TEST_BLOCK(CustomBlock.auto(10));
 
     private final CustomBlock block;
-    private final String blockId;
 
-    DefaultBlocks(CustomBlock block, String blockId) {
+    DefaultBlocks(CustomBlock block) {
         this.block = block;
-        this.blockId = blockId;
     }
 
     @Override
@@ -20,7 +20,7 @@ public enum DefaultBlocks implements EnumRegistries.Block {
     }
 
     @Override
-    public String getId() {
-        return blockId;
+    public NamespacedKey getKey() {
+        return new NamespacedKey(DogeMinesFramework.NAMESPACE, this.name().toLowerCase());
     }
 }

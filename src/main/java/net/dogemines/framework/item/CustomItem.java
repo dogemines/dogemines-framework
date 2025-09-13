@@ -2,8 +2,8 @@ package net.dogemines.framework.item;
 
 import com.google.gson.JsonObject;
 import net.dogemines.framework.DogeMinesFramework;
-import net.dogemines.framework.data.BasicModel;
-import net.dogemines.framework.data.ResourcePack;
+import net.dogemines.framework.data.resource.BasicModel;
+import net.dogemines.framework.data.resource.ResourcePack;
 import net.dogemines.framework.data.registry.Registries;
 import net.dogemines.framework.data.registry.RegistryObject;
 import net.kyori.adventure.text.Component;
@@ -29,12 +29,20 @@ public class CustomItem {
         this.name = name;
         this.metaDecorator = metaDecorator;
     }
+    public CustomItem(Material material, String name, ItemMetaDecorator metaDecorator) {
+        this(material, Component.text(name), metaDecorator);
+    }
+
     public CustomItem(Material material, Component name) {
         this(material, name, ItemMetaDecorator.DEFAULT);
     }
+    public CustomItem(Material material, String name) {
+        this(material, name, ItemMetaDecorator.DEFAULT);
+    }
+
 
     //methods
-    public void modifyItemMeta(ItemMeta itemMeta, String itemId) {
+    public void modifyItemMeta(ItemMeta itemMeta, NamespacedKey itemId) {
         metaDecorator.modifyItemMeta(itemMeta, itemId, this);
     }
 
@@ -60,12 +68,14 @@ public class CustomItem {
 
 
     //static utility methods
-    public static @Nullable String getIdFromItemStack(@NotNull ItemStack stack) {
+    public static @Nullable NamespacedKey getIdFromItemStack(@NotNull ItemStack stack) {
         ItemMeta meta = stack.getItemMeta();
         PersistentDataContainer itemPDC = meta.getPersistentDataContainer();
 
         if (itemPDC.has(ID_KEY)) {
-            return itemPDC.get(ID_KEY, PersistentDataType.STRING);
+            String id = itemPDC.get(ID_KEY, PersistentDataType.STRING);
+            assert id != null;
+            return NamespacedKey.fromString(id);
         }
         return null;
     }
@@ -76,7 +86,7 @@ public class CustomItem {
      * @return A CustomItem found in the registry with the stored ID, or null if it wasn't found.
      */
     public static @Nullable RegistryObject<CustomItem> fromItemStack(ItemStack stack) {
-        String itemId = getIdFromItemStack(stack);
+        NamespacedKey itemId = getIdFromItemStack(stack);
         if (itemId != null) {
             return Registries.ITEM.get(itemId);
         }
@@ -87,10 +97,9 @@ public class CustomItem {
     //overridable methods
     public void onClick(Player player, CustomItemStack itemStack) {}
 
-    public BasicModel getModel(String itemId) {
+    public BasicModel getModel() {
         return new BasicModel(
                 ResourcePack.getParent(material, true),
-                ResourcePack.getDogeminesPath(itemId, false),
                 false
         );
     }

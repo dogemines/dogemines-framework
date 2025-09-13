@@ -1,27 +1,30 @@
-package net.dogemines.framework.data;
+package net.dogemines.framework.data.resource;
 
 import com.google.gson.JsonObject;
+import org.bukkit.NamespacedKey;
 
 public class BasicModel {
     private final String parent;
-    private final String texture;
     private final boolean isBlock;
 
-    public BasicModel(String parent, String texture, boolean isBlock) {
+    public BasicModel(String parent, boolean isBlock) {
         this.parent = parent;
-        this.texture = texture;
         this.isBlock = isBlock;
     }
 
-    public JsonObject getJson() {
+    public JsonObject getJson(NamespacedKey itemId) {
         JsonObject model = new JsonObject();
         model.addProperty("parent", parent);
 
         JsonObject textures = new JsonObject();
-        textures.addProperty(isBlock ? "all" : "layer0", texture);
+        textures.addProperty(isBlock ? "all" : "layer0", getPath(itemId));
 
         model.add("textures", textures);
 
         return model;
+    }
+
+    public String getPath(NamespacedKey itemId) {
+        return ResourcePack.getDogeminesPath(itemId, isBlock);
     }
 }

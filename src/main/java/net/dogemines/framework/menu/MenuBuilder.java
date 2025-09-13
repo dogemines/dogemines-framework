@@ -1,6 +1,10 @@
 package net.dogemines.framework.menu;
 
+import net.dogemines.framework.data.registry.RegistryObject;
+import net.dogemines.framework.data.resource.UnicodeChar;
 import net.dogemines.framework.item.CustomItemStack;
+import net.dogemines.framework.test.DefaultChars;
+import net.dogemines.framework.test.DefaultItems;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.inventory.ItemStack;
@@ -9,7 +13,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-import static net.dogemines.framework.util.GeneralUtil.splitArray;
+import static net.dogemines.framework.util.ArrayUtil.splitArray;
 
 public  class MenuBuilder<T extends MenuBuilder<T>> {
     protected final ItemStack[] contents;
@@ -47,7 +51,7 @@ public  class MenuBuilder<T extends MenuBuilder<T>> {
         return self();
     }
     public T fill() {
-        return fill(CustomItemStack.of(DefaultInventoryItems.INVENTORY_FILLER));
+        return fill(CustomItemStack.of(DefaultItems.INVENTORY_FILLER));
     }
 
     // useful for menu-type inventories, the items are arranged automatically.
@@ -139,6 +143,18 @@ public  class MenuBuilder<T extends MenuBuilder<T>> {
         public InventoryMenuBuilder(InventorySizes size, String name) {
             super(size, name);
         }
+        public InventoryMenuBuilder(InventorySizes size, String name, UnicodeChar inventoryBackground) {
+            super(size,
+                    DefaultChars.NEG_SPACE_BEFORE_CHAR.asString()
+                    + inventoryBackground.asString()
+                    + DefaultChars.NEG_SPACE_BEFORE_NAME.asString()
+                    + name
+            );
+        }
+        public InventoryMenuBuilder(InventorySizes size, String name, RegistryObject<UnicodeChar> inventoryBackground) {
+            this(size, name, inventoryBackground.getValue());
+        }
+
         public InventoryMenu build() {
             return new InventoryMenu(name, contents, clickCallbacks, hasCooldown);
         }

@@ -1,4 +1,4 @@
-package net.dogemines.framework.data;
+package net.dogemines.framework.data.resource;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -13,17 +13,16 @@ import java.net.InetSocketAddress;
 import java.nio.file.Files;
 
 //hosts a resource pack file with a http server
-public final class RPHttpServer {
+public final class RPHttpServer implements HostingMethod {
     private final JavaPlugin plugin;
-    private final File resourcePackFile;
+    private File resourcePackFile;
     private HttpServer server;
 
     private final int PORT = 8000;
     private final String RESOURCES_PATH = "/resources.zip";
 
-    public RPHttpServer(JavaPlugin plugin, File resourcePackFile) {
+    public RPHttpServer(JavaPlugin plugin) {
         this.plugin = plugin;
-        this.resourcePackFile = resourcePackFile;
         try {
             server = HttpServer.create(new InetSocketAddress(PORT), 0);
             server.createContext(RESOURCES_PATH, new FileHandler());
@@ -42,10 +41,17 @@ public final class RPHttpServer {
         }
     }
 
-    public void stop() {
+    @Override
+    public void hostPack(File resourcePackFile) {
+        this.resourcePackFile = resourcePackFile;
+    }
+
+    @Override
+    public void disable() {
         server.stop(0);
     }
 
+    @Override
     public String getResourceURL() {
         return "http://" + Bukkit.getIp() + ":" + PORT + RESOURCES_PATH;
     }
