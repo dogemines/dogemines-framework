@@ -10,7 +10,17 @@ public enum ButtonLocation {
         this.inventoryOffset = inventoryOffset;
     }
 
-    public int getInventoryOffset() {
+    public int getOffsetRelative() {
         return inventoryOffset;
+    }
+
+    public int getIndex(InventorySizes size) {
+        return size.getSize() + inventoryOffset;
+    }
+    public int getIndexForDouble() {
+        return InventorySizes.DOUBLE_CHEST.getSize() + inventoryOffset;
+    }
+    public int getIndexForChest() {
+        return InventorySizes.CHEST.getSize() + inventoryOffset;
     }
 }

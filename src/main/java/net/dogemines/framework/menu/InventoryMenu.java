@@ -13,13 +13,14 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class InventoryMenu implements InventoryHolder, Clickable, PlayerOpenable {
 
     private final Inventory inventory;
     private final Map<Integer, ClickCallback> clickCallbacks;
     private final boolean hasCooldown;
-    private final ArrayList<Player> inCooldown = new ArrayList<>();
+    private final ArrayList<UUID> inCooldown = new ArrayList<>();
 
     public InventoryMenu(Component name, ItemStack[] contents, HashMap<Integer, ClickCallback> clickCallbacks, boolean hasCooldown) {
         this.inventory = Bukkit.getServer().createInventory(this, contents.length, name);
@@ -40,13 +41,14 @@ public class InventoryMenu implements InventoryHolder, Clickable, PlayerOpenable
 
     @Override
     public void openInventory(@NotNull Player player) {
-        if (!inCooldown.contains(player)) {
+        UUID playerUUID = player.getUniqueId();
+        if (!inCooldown.contains(playerUUID)) {
             player.openInventory(inventory);
 
             if (hasCooldown) {
-                inCooldown.add(player);
+                inCooldown.add(playerUUID);
                 Bukkit.getScheduler().scheduleSyncDelayedTask(DogeMinesFramework.getInstance(), () -> {
-                    inCooldown.remove(player);
+                    inCooldown.remove(playerUUID);
                 }, 60);
             }
         }

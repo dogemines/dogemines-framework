@@ -74,6 +74,13 @@ public final class DogeMinesFramework extends JavaPlugin {
         return instance;
     }
 
+    public static void warning(String message) {
+        getInstance().getLogger().warning(message);
+    }
+    public static void info(String message) {
+        getInstance().getLogger().info(message);
+    }
+
     @ApiStatus.Internal
     public static NamespacedKey createNamespace(String id) {
         return new NamespacedKey(NAMESPACE, id);

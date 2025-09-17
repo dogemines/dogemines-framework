@@ -8,6 +8,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.mojang.brigadier.tree.LiteralCommandNode;
+import io.papermc.paper.command.brigadier.BasicCommand;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
 import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
@@ -19,6 +20,7 @@ import net.dogemines.framework.block.CustomBlock;
 import net.dogemines.framework.data.registry.Registries;
 import net.dogemines.framework.data.registry.DogeRegistry;
 import net.dogemines.framework.data.registry.RegistryObject;
+import net.dogemines.framework.data.resource.ResourcePack;
 import net.dogemines.framework.item.CustomItem;
 import net.dogemines.framework.item.CustomItemStack;
 import net.kyori.adventure.text.Component;
@@ -28,12 +30,14 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.permissions.Permissible;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 
 final class FrameworkCommands {
-    public static void registerCommands(Commands registrar) {
+    static void registerCommands(Commands registrar) {
         LiteralCommandNode<CommandSourceStack> dogeminesCommand = Commands.literal("custom")
 
                 .then(Commands.literal("give")
@@ -44,8 +48,7 @@ final class FrameworkCommands {
                                                     final PlayerSelectorArgumentResolver targetResolver = ctx.getArgument("target", PlayerSelectorArgumentResolver.class);
                                                     final Player target = targetResolver.resolve(ctx.getSource()).getFirst();
 
-                                                    @SuppressWarnings("unchecked")
-                                                    final RegistryObject<CustomItem> itemPair = ctx.getArgument("item", RegistryObject.class);
+                                                    @SuppressWarnings("unchecked") final RegistryObject<CustomItem> itemPair = ctx.getArgument("item", RegistryObject.class);
                                                     final int amount = ctx.getArgument("amount", Integer.class);
 
                                                     target.give(CustomItemStack.of(itemPair, amount));
@@ -71,8 +74,7 @@ final class FrameworkCommands {
                                                 final BlockPosition blockPosition = blockPositionResolver.resolve(ctx.getSource());
                                                 final Block block = blockPosition.toLocation(world).getBlock();
 
-                                                @SuppressWarnings("unchecked")
-                                                final RegistryObject<CustomBlock> blockObject = ctx.getArgument("block", RegistryObject.class);
+                                                @SuppressWarnings("unchecked") final RegistryObject<CustomBlock> blockObject = ctx.getArgument("block", RegistryObject.class);
                                                 blockObject.getValue().getDefaultState().setBlock(block);
 
                                                 player.sendMessage(Component.text("Successfully set the block!", NamedTextColor.GREEN));
@@ -82,65 +84,37 @@ final class FrameworkCommands {
                                         })
                                 )
                         )
-                )
+                ).build();
 
-                .then(Commands.literal("regenpack")
-                        .executes(ctx -> {
-                            CommandSender sender = ctx.getSource().getSender();
-                            sender.sendMessage(Component.text("Regenerating resource pack"));
-                            DogeMinesFramework.getResourcePack().generate();
-                            sender.sendMessage(Component.text("Done!"));
-                            return Command.SINGLE_SUCCESS;
-                        })
-                )
+        registrar.register("regenpack", (source, args) -> {
+            CommandSender sender = source.getSender();
 
-                /*.then(Commands.literal("inventory")
-                        .then(Commands.argument("target", ArgumentTypes.player())
-                                .then(Commands.argument("inventory", new RegistryPairArgumentType<>(Registries.MENU))
-                                        .executes(ctx -> {
-                                            final PlayerSelectorArgumentResolver targetResolver = ctx.getArgument("target", PlayerSelectorArgumentResolver.class);
-                                            final Player target = targetResolver.resolve(ctx.getSource()).getFirst();
+            sender.sendMessage(Component.text("Regenerating resource pack"));
+            DogeMinesFramework.getResourcePack().generate();
+            sender.sendMessage(Component.text("Done!"));
 
-                                            @SuppressWarnings("unchecked")
-                                            final RegistryPair<InventoryMenu> menuPair = ctx.getArgument("inventory", RegistryPair.class);
+            setResourcePack(sender);
+        });
+        registrar.register("rehostpack", (source, args) -> {
+            CommandSender sender = source.getSender();
+            ResourcePack pack = DogeMinesFramework.getResourcePack();
+            try {
+                pack.zipPack();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
 
-                                            menuPair.getValue().openInventory(target);
-
-                                            return Command.SINGLE_SUCCESS;
-                                        })
-                                )
-                        )
-                )*/
-
-                //------------------------------------------
-                // Debug commands
-                //------------------------------------------
-               /* .then(Commands.literal(("debug"))
-                        .then(Commands.literal("summonnpc")
-                                .then(Commands.argument("location", ArgumentTypes.finePosition(true))
-                                        .then(Commands.argument("skin", new RegistryArgumentType<>(PlayerSkin.class))
-                                                .then(Commands.argument("name", StringArgumentType.greedyString())
-                                                        .executes(ctx -> {
-                                                            final FinePositionResolver resolver = ctx.getArgument("location", FinePositionResolver.class);
-                                                            final FinePosition finePosition = resolver.resolve(ctx.getSource());
-
-                                                            final String name = ctx.getArgument("name", String.class);
-                                                            final PlayerSkin skin = ctx.getArgument("skin", PlayerSkin.class);
-
-                                                            PlayerNPC.create(finePosition.toLocation(DogeMines.WORLD), name, skin);
-
-                                                            return Command.SINGLE_SUCCESS;
-                                                        })
-                                                )
-                                        )
-                                )
-                        )
-
-                )*/
-
-                .build();
+            setResourcePack(sender);
+        });
 
         registrar.register(dogeminesCommand);
+    }
+
+    private static void setResourcePack(CommandSender sender) {
+        if (sender instanceof Player player) {
+            ResourcePack pack = DogeMinesFramework.getResourcePack();
+            player.setResourcePack(pack.getHostingMethod().getResourceURL(), pack.getSha1(), Component.text("Resource pack reload"));
+        }
     }
 }
 

@@ -25,7 +25,7 @@ public class InventoryNodeBuilder extends MenuBuilder<InventoryNodeBuilder> impl
 
     private void setBack(ButtonLocation buttonLocation) {
         if (parent != null) {
-            int index = contents.length + buttonLocation.getInventoryOffset();
+            int index = contents.length + buttonLocation.getOffsetRelative();
 
             set(index, CustomItemStack.of(DefaultItems.INVENTORY_BACK));
             links.put(index, parent);

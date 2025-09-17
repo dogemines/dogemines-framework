@@ -19,7 +19,7 @@ public class DogeRegistry<T> {
         return registry.get(key);
     }
     public void set(NamespacedKey key, RegistryObject<T> value) {
-        if (immutable) {
+        if (immutable && !registry.containsKey(key)) {
             throw new ImmutableRegistryException();
         }
         if (registry.containsKey(key)) {

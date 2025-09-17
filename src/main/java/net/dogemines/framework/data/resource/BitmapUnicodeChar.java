@@ -2,6 +2,7 @@ package net.dogemines.framework.data.resource;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import net.dogemines.framework.menu.InventorySizes;
 import org.bukkit.NamespacedKey;
 
 import java.util.HashSet;
@@ -28,6 +29,9 @@ public class BitmapUnicodeChar implements UnicodeChar {
         //primitive types don't hold references when a new variable is assigned
         this.character = offset;
         offset += 1;
+    }
+    public static BitmapUnicodeChar forInventory(String filepath, InventorySizes inventorySize) {
+        return new BitmapUnicodeChar(filepath, 9, inventorySize.getUnicodeHeight());
     }
 
     public JsonObject getJson(String namespace) {

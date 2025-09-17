@@ -7,7 +7,6 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface SQLDataType {
-
-    public static enum 
+public @interface SQLColumn {
+    public String value();
 }

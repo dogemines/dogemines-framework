@@ -41,6 +41,7 @@ public class ResourcePack {
     private File assets;
     private File zipfile;
     private byte[] sha1;
+    private File output;
 
     public ResourcePack(HostingMethod hostingMethod) {
         this.hostingMethod = hostingMethod;
@@ -55,18 +56,18 @@ public class ResourcePack {
         log.info("generating resource pack. please wait...");
         this.assets = new File(datafolder, "assets");
 
-        File resourceoutput = new File(datafolder.getPath() + "/resourceoutput/pack");
-        if (resourceoutput.exists()) {
+        output = new File(datafolder.getPath() + "/resourceoutput/pack");
+        if (output.exists()) {
             try {
-                FileUtils.deleteDirectory(resourceoutput);
+                FileUtils.deleteDirectory(output);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
-        resourceoutput.mkdir();
+        output.mkdir();
 
         try {
-            generateInternal(resourceoutput);
+            generateInternal();
         } catch (IOException e) {
             log.warning("could not generate resource pack");
             throw new RuntimeException(e);
@@ -221,7 +222,7 @@ public class ResourcePack {
     private File newMinecraftDir;
     private final HashMap<String, NamespacedDirectoryStructure> namespacedDirs = new HashMap<>();
 
-    private void generateInternal(File output) throws IOException {
+    private void generateInternal() throws IOException {
 
         final Gson gsonbuild = new GsonBuilder()
                 .setPrettyPrinting()
@@ -453,17 +454,21 @@ public class ResourcePack {
         //   zipping pack
         //------------------
 
+        zipPack();
+    }
+
+    public void zipPack() throws IOException {
         File zos = new File(output.getParentFile(), "dogemines-resources.zip");
         DogeFileUtils.zip(output, zos);
         zipfile = zos;
 
-        //calculate sha1 of zip file
         try {
             String sha1String = DogeFileUtils.calcSHA1(zipfile);
             sha1 = BaseEncoding.base16().decode(sha1String.toUpperCase());
         } catch (NoSuchAlgorithmException e) {
             DogeMinesFramework.getInstance().getLogger().warning(e.toString());
         }
+
     }
 
 
