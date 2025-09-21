@@ -1,6 +1,9 @@
 package net.dogemines.framework.data.registry;
 
 import net.dogemines.framework.block.CustomBlock;
+import net.dogemines.framework.data.database.GenericDao;
+import net.dogemines.framework.data.database.SqlCache;
+import net.dogemines.framework.data.database.SqlTable;
 import net.dogemines.framework.data.resource.UnicodeChar;
 import net.dogemines.framework.item.CustomItem;
 import net.dogemines.framework.sound.CustomSoundEvent;

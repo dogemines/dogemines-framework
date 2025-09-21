@@ -2,6 +2,7 @@ package net.dogemines.framework;
 
 import io.papermc.paper.command.brigadier.Commands;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
+import net.dogemines.framework.data.database.SqlCache;
 import net.dogemines.framework.data.registry.DogeRegistry;
 import net.dogemines.framework.data.resource.ResourcePackEvents;
 import net.dogemines.framework.menu.InventoryEventHandler;
@@ -65,6 +66,11 @@ public final class DogeMinesFramework extends JavaPlugin {
     public void onDisable() {
         // Plugin shutdown logic
         resourcePack.getHostingMethod().disable();
+
+        //save all caches if server shuts down
+        for (SqlCache<?> cache : SqlCache.CACHES) {
+            cache.saveAllSync();
+        }
     }
 
     public static ResourcePack getResourcePack() {
@@ -79,6 +85,10 @@ public final class DogeMinesFramework extends JavaPlugin {
     }
     public static void info(String message) {
         getInstance().getLogger().info(message);
+    }
+
+    public static void runTaskAsynchronously(Runnable task) {
+        Bukkit.getScheduler().runTaskAsynchronously(getInstance(), task);
     }
 
     @ApiStatus.Internal
