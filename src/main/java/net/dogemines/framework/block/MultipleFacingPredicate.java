@@ -1,8 +1,6 @@
 package net.dogemines.framework.block;
 
 import com.google.gson.annotations.Expose;
-import net.dogemines.framework.data.resource.BasicModel;
-import net.dogemines.framework.data.resource.ResourcePack;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;

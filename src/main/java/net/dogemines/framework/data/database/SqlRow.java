@@ -1,6 +1,7 @@
 package net.dogemines.framework.data.database;
 
 import net.dogemines.framework.DogeMinesFramework;
+import net.kyori.adventure.audience.Audience;
 
 import java.lang.reflect.Field;
 import java.sql.ResultSet;

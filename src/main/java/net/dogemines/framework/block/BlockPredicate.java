@@ -3,7 +3,6 @@ package net.dogemines.framework.block;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import net.dogemines.framework.DogeMinesFramework;
-import net.dogemines.framework.data.resource.BasicModel;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;

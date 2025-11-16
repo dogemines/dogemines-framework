@@ -1,6 +1,5 @@
 package net.dogemines.framework.sound;
 
-import net.dogemines.framework.DogeMinesFramework;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 

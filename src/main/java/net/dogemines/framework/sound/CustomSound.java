@@ -2,8 +2,6 @@ package net.dogemines.framework.sound;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import net.dogemines.framework.DogeMinesFramework;
-import org.bukkit.NamespacedKey;
 
 public record CustomSound(
         String name,

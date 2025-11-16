@@ -12,7 +12,6 @@ public class GenericDao<T extends SqlRow> {
     public GenericDao(SqlTable<T> table, Handle handle) {
         this.table = table;
         this.handle = handle;
-        createTable();
     }
 
     //helper method that sets a list of arguments to a PreparedStatement
@@ -36,26 +35,29 @@ public class GenericDao<T extends SqlRow> {
                 if (rs.next()) {
                     instance.mapResult(rs);
                 }
-        }, true);
+        }, false);
     }
     public void selectWherePrimaryKey(String whereValue, T instance) {
         select(table.getPrimaryKey(), whereValue, instance);
     }
 
     //INSERT OR IGNORE INTO table_name (column) VALUES (?);
-    public void insert(T data, String[] fields) {
-        handle.withPreparedStatement("INSERT OR IGNORE INTO %s (%s) VALUES (%s)".formatted(
+    public void insert(T sqlRow, String[] fields) {
+        handle.withPreparedStatement("INSERT INTO %s (%s) VALUES (%s) ON CONFLICT DO NOTHING".formatted(
                 table.getName(),
                 table.listFields(fields, "", false),
                 SqlTable.repeatPlaceholder(fields.length)),
 
             statement -> {
-                applyArgs(statement, data.mapFieldsToValues(fields));
+                applyArgs(statement, sqlRow.mapFieldsToValues(fields));
                 statement.executeUpdate();
-        }, true);
+        }, false);
     }
     public void insertAllFields(T data) {
-        insert(data, table.getAllFieldsWithPrimaryKey());
+        insert(data, table.getAllFields());
+    }
+    public void insertRequiredFields(T data) {
+        insert(data, table.getRequiredFields());
     }
 
     //UPDATE table_name SET column1 = ?, column2 = ? WHERE column = ?;
@@ -72,15 +74,15 @@ public class GenericDao<T extends SqlRow> {
             applyArgs(statement, sqlRow.mapFieldsToValues(fields));
             statement.setObject(fields.length + 1, whereValue); //WHERE column = ?
             statement.executeUpdate();
-        }, true);
+        }, false);
     }
     //helper methods
-    public void updateAllFields(T sqlRow, String whereField, Object whereValue) {
-        update(sqlRow, table.getFieldsWithoutPrimaryKey(), whereField, whereValue);
+    public void updateMutableFields(T sqlRow, String whereField, Object whereValue) {
+        update(sqlRow, table.getAllMutableFields(), whereField, whereValue);
     }
     public void updateByPrimaryKey(T sqlRow) {
         String primaryKey = table.getPrimaryKey();
-        updateAllFields(sqlRow, primaryKey, sqlRow.getField(primaryKey));
+        updateMutableFields(sqlRow, primaryKey, sqlRow.getField(primaryKey));
     }
 
     //update batch
@@ -95,20 +97,11 @@ public class GenericDao<T extends SqlRow> {
             }
             statement.executeBatch();
 
-        }, false); //sql transaction
-    }
-    //update batch using a SqlCache
-    public void updateBatch(SqlCache<T> cache) {
-        updateBatch(cache.getMap().values(),
-                table.getFieldsWithoutPrimaryKey(),
-                table.getPrimaryKey());
+        }, true); //sql transaction
     }
 
 
     //table methods
-    public void createTable() {
-        table.createTable(handle);
-    }
     public SqlTable<T> getTable() {
         return table;
     }

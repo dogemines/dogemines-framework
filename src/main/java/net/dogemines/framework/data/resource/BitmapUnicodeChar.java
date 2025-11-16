@@ -3,7 +3,6 @@ package net.dogemines.framework.data.resource;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.dogemines.framework.menu.InventorySizes;
-import org.bukkit.NamespacedKey;
 
 import java.util.HashSet;
 
