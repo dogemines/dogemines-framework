@@ -1,7 +1,9 @@
 # DogeMines Framework
-A server development framework for use with PaperMC servers, which is developed for and used in the creation of the Minecraft server, [*The Doge Mines.*](https://dogemines.net) It features creation of many custom objects, all done through a server-sided plugin without any required mods on the client.
+Part of an old project of mine where I tried to make a vanilla Minecraft server with custom content. Archived; no longer updated.
 
-[Click here for full documentation of this library!]("https://docs.dogemines.net/framework") 
+---
+
+A server development framework for use with PaperMC servers, which is developed for and used in the creation of my Minecraft server. It features creation of many custom objects, all done through a server-sided plugin without any required mods on the client.
 
 ### Features
 **Resource pack**\
